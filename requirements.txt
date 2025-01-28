@@ -4,3 +4,7 @@ plotly
 openpyxl
 scikit-learn
 statsmodels
+plotly.express
+sklearn.preprocessing
+sklearn.cluster
+numpy

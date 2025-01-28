@@ -1,31 +1,22 @@
+# mindshift.py
+
 import streamlit as st
-import pandas as pd
-import plotly.express as px
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
-import numpy as np
+import scr  # We import our separate scr.py module
 
-# Login Functionality
-def login():
-    st.sidebar.header("Login")
-    username = st.sidebar.text_input("Username")
-    password = st.sidebar.text_input("Password", type="password")
-    if st.sidebar.button("Login"):
-        if username == "hamza" and password == "dream123":  # Replace with secure authentication in production
-            st.session_state["logged_in"] = True
-        else:
-            st.sidebar.error("Invalid username or password")
-
+# Ensure session state for login
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 
+# LOGIN CHECK
 if not st.session_state["logged_in"]:
-    login()
+    # Use the login function from scr.py
+    scr.login()
 else:
+
     # Streamlit App Title
     st.title("Intelligent Dashboard Analytics")
     st.sidebar.title("MindShift")
-    st.sidebar.write("Explore different analyses:")
+    st.sidebar.write("Explore different analyses")
     st.image("mindshift.jpg", width=200)
 
     # File Upload
@@ -60,6 +51,36 @@ else:
             data["DoubleRoomRevenue"] = 0
             data["RoyalRoomRevenue"] = 0
             data["FamilyRoomRevenue"] = 0  # Add Family Room
+
+        # Calculate Room Costs
+        unit_prices = {
+            "Single Room": 470,
+            "Double Room": 680,
+            "Family Room": 729,
+            "Royal Room": 800
+        }
+        data["RoomCost"] = (
+            data["SingleRoomsOccupied"] * unit_prices["Single Room"] +
+            data["DoubleRoomsOccupied"] * unit_prices["Double Room"] +
+            data["FamilyRoomsOccupied"] * unit_prices["Family Room"] +
+            data["RoyalRoomsOccupied"] * unit_prices["Royal Room"]
+        )
+
+        # Calculate Profit
+        data["Profit"] = data["TotalRevenue"] - (
+            data["RoomCost"] +
+            data["UtilityCostElectricity"] +
+            data["UtilityCostWater"] +
+            data["UtilityCostGas"] +
+            data["StaffSalaryHousekeeping"] +
+            data["StaffSalaryFrontDesk"] +
+            data["StaffSalaryMaintenance"] +
+            data["StaffSalaryF&B"] +
+            data["StaffSalaryMarketing"] +
+            data["MaintenanceCost"] +
+            data["DepreciationCost"] +
+            data["MealPlanCost"]
+        )
 
         room_revenue_per_year = (
             data.groupby("Year")[["SingleRoomRevenue", "DoubleRoomRevenue", "RoyalRoomRevenue", "FamilyRoomRevenue"]]
@@ -119,7 +140,14 @@ else:
             "Operational Efficiency & Resource Allocation",
             "Room Type Profitability Analysis",
             "CLTV Estimation",
-            "Upselling & Cross-Selling"
+            "Upselling & Cross-Selling",
+            "Room Cost Analysis",  # New option for Room Cost Analysis
+            "Dynamic Pricing Suggestions",  # New option for Dynamic Pricing Suggestions
+            "Guest Preferences",  # New option for Guest Preferences
+            "Scenario Planning",  # New option for Scenario Planning
+            "Story Telling",  # <--- NEW
+            "Dig Deeper",
+            "Company's"# <--- NEW
         ]
         choice = st.sidebar.radio("Select a category", options)
 
@@ -196,8 +224,6 @@ else:
                     يشير الارتباط الإيجابي إلى أن ارتفاع أسعار الغرف قد يؤدي إلى زيادة إجمالي الإيرادات.
                     ومع ذلك، فإن معدل الإشغال والعوامل الأخرى تلعب أيضًا أدوارًا مهمة.
                     """)
-                    
-                    
 
             # Marketing Spend vs Total Revenue
             if "MarketingSpend" in filtered_data.columns and "TotalRevenue" in filtered_data.columns:
@@ -208,17 +234,16 @@ else:
                 )
                 st.plotly_chart(fig_mktg)
                 with st.expander("Explain Marketing Spend vs Total Revenue"):
-                     st.markdown("""
-    This chart highlights how your marketing budget correlates with total revenue.
-    A strong correlation would suggest your marketing campaigns are effective at driving revenue.
-    If it's weak, you may need to adjust your marketing strategy or targeting.
-    """)
-                     st.markdown("""
-    **يُظهر هذا الرسم البياني كيف ترتبط ميزانيتك التسويقية بإجمالي الإيرادات.**
-    **يشير الارتباط القوي إلى أن حملاتك التسويقية فعالة في زيادة الإيرادات.**
-    **إذا كان الارتباط ضعيفًا، فقد تحتاج إلى تعديل استراتيجية التسويق أو استهداف الجمهور.**
-    """)
-
+                    st.markdown("""
+                    This chart highlights how your marketing budget correlates with total revenue.
+                    A strong correlation would suggest your marketing campaigns are effective at driving revenue.
+                    If it's weak, you may need to adjust your marketing strategy or targeting.
+                    """)
+                    st.markdown("""
+                    **يُظهر هذا الرسم البياني كيف ترتبط ميزانيتك التسويقية بإجمالي الإيرادات.**
+                    **يشير الارتباط القوي إلى أن حملاتك التسويقية فعالة في زيادة الإيرادات.**
+                    **إذا كان الارتباط ضعيفًا، فقد تحتاج إلى تعديل استراتيجية التسويق أو استهداف الجمهور.**
+                    """)
 
             # Rooms Revenue per Year (including Family Room)
             st.write("**Rooms Revenue per Year**")
@@ -237,15 +262,14 @@ else:
                 )
                 st.plotly_chart(fig_rooms)
                 with st.expander("Explain Rooms Revenue by Year"):
-                     st.markdown("""
+                    st.markdown("""
                     This compares revenue from Single, Double, Royal, and Family rooms over different years.
                     It helps you see which type of room generates the most revenue and how it changes yearly.
                     """)
-                     st.markdown("""
+                    st.markdown("""
                     يقارن هذا الرسم البياني الإيرادات من الغرف الفردية والمزدوجة والغرف الملكية والعائلية على مدار سنوات مختلفة.
                     يساعدك على رؤية نوع الغرفة الذي يحقق أكبر إيرادات وكيف يتغير سنويًا.
                     """)
-
             else:
                 st.write("No room revenue data available under the current filters.")
 
@@ -270,10 +294,9 @@ else:
                         Large slices indicate key markets you can target for specialized services or promotions.
                         """)
                         st.markdown("""
-                      يُظهر هذا الرسم البياني الدائري نسبة الضيوف القادمين من كل جنسية.
-تشير الشرائح الكبيرة إلى الأسواق الرئيسية التي يمكنك استهدافها بخدمات أو عروض ترويجية مخصصة.
-
-                     """)
+                        يُظهر هذا الرسم البياني الدائري نسبة الضيوف القادمين من كل جنسية.
+                        تشير الشرائح الكبيرة إلى الأسواق الرئيسية التي يمكنك استهدافها بخدمات أو عروض ترويجية مخصصة.
+                        """)
                 else:
                     st.write("No nationality data available under the current filters.")
 
@@ -294,9 +317,8 @@ else:
                         which age segment is most common. You can use this information for tailored amenities.
                         """)
                         st.markdown("""
-يُظهر هذا الرسم البياني العمودي عدد الضيوف في كل فئة عمرية، مما يشير إلى
-أي شريحة عمرية هي الأكثر شيوعًا. يمكنك استخدام هذه المعلومات لتوفير وسائل راحة مخصصة.
-
+                        يُظهر هذا الرسم البياني العمودي عدد الضيوف في كل فئة عمرية، مما يشير إلى
+                        أي شريحة عمرية هي الأكثر شيوعًا. يمكنك استخدام هذه المعلومات لتوفير وسائل راحة مخصصة.
                         """)
                 else:
                     st.write("No age group data available under the current filters.")
@@ -318,9 +340,8 @@ else:
                         If you have a large number of top-tier members, consider special offers to keep them engaged.
                         """)
                         st.markdown("""
-يُظهر هذا الرسم البياني عدد الضيوف في كل مستوى ولاء.
-إذا كان لديك عدد كبير من الأعضاء في المستوى الأعلى، ففكر في تقديم عروض خاصة لإبقائهم متفاعلين.
-
+                        يُظهر هذا الرسم البياني عدد الضيوف في كل مستوى ولاء.
+                        إذا كان لديك عدد كبير من الأعضاء في المستوى الأعلى، ففكر في تقديم عروض خاصة لإبقائهم متفاعلين.
                         """)
                 else:
                     st.write("No loyalty tier data available under the current filters.")
@@ -342,6 +363,30 @@ else:
                             title="Monthly Revenue Trend (Filtered)", markers=True
                         )
                         st.plotly_chart(fig_month)
+
+                        # Task 1: Seasonality Analysis with Months and Years
+                        st.subheader("Seasonality Analysis with Months and Years")
+                        monthly_revenue_year = (
+                            filtered_data.groupby(["Year", "Month"])["TotalRevenue"].sum().reset_index()
+                        )
+                        fig_month_year = px.line(
+                            monthly_revenue_year, x="Month", y="TotalRevenue", color="Year",
+                            title="Monthly Revenue Trend by Year", markers=True
+                        )
+                        st.plotly_chart(fig_month_year)
+
+                        # Task 2: Explanation of the Peak
+                        peak_month = monthly_revenue.loc[monthly_revenue["TotalRevenue"].idxmax()]
+                        st.write(f"**Peak Month:** {peak_month['Month']} with Total Revenue of ${peak_month['TotalRevenue']:,.2f}")
+                        st.write("**Explanation:** The peak month typically represents the highest demand period, often due to holidays, events, or favorable weather conditions.")
+
+                        # Task 3: Point at the Peak and Write the Month and Total Revenue
+                        st.write(f"**Note:** The highest revenue was achieved in **{peak_month['Month']}** with a total revenue of **${peak_month['TotalRevenue']:,.2f}**.")
+
+                        # Task 4: Point at the Lowest Point and Write the Month and Total Revenue
+                        lowest_month = monthly_revenue.loc[monthly_revenue["TotalRevenue"].idxmin()]
+                        st.write(f"**Note:** The lowest revenue was recorded in **{lowest_month['Month']}** with a total revenue of **${lowest_month['TotalRevenue']:,.2f}**.")
+
                         with st.expander("Explain Seasonality Trend"):
                             st.markdown("""
                             This line chart shows how revenue changes month-to-month.
@@ -349,10 +394,9 @@ else:
                             staffing, pricing, and promotions.
                             """)
                             st.markdown("""
-يُظهر هذا الرسم البياني الخطي كيفية تغير الإيرادات من شهر لآخر.
-يمكن أن تساعدك ملاحظة الأشهر التي تحقق أعلى أو أقل إيرادات في توجيه
-التوظيف والتسعير والعروض الترويجية.
-
+                            يُظهر هذا الرسم البياني الخطي كيفية تغير الإيرادات من شهر لآخر.
+                            يمكن أن تساعدك ملاحظة الأشهر التي تحقق أعلى أو أقل إيرادات في توجيه
+                            التوظيف والتسعير والعروض الترويجية.
                             """)
                     else:
                         st.write("No monthly revenue data available for current filters.")
@@ -390,9 +434,9 @@ else:
                         consistent operations.
                         """)
                         st.markdown("""
-يساعد هذا الرسم البياني الخطي في تحديد الأنماط أو الارتفاعات المفاجئة في مصروفات النظافة.
-قد تحتاج الارتفاعات المفاجئة إلى التحقيق، بينما تشير المصروفات المستقرة إلى
-عمليات ثابتة.
+                        يساعد هذا الرسم البياني الخطي في تحديد الأنماط أو الارتفاعات المفاجئة في مصروفات النظافة.
+                        قد تحتاج الارتفاعات المفاجئة إلى التحقيق، بينما تشير المصروفات المستقرة إلى
+                        عمليات ثابتة.
                         """)
                 else:
                     st.write("No housekeeping expense data under the current filters.")
@@ -423,8 +467,8 @@ else:
                         If expenses consistently exceed revenue, it may be time to optimize operations or pricing.
                         """)
                         st.markdown("""
-يُقارن هذا الرسم البياني العمودي الإيرادات من خدمات الغسيل مع المصروفات ذات الصلة.
-إذا كانت المصروفات تتجاوز الإيرادات باستمرار، فقد يكون الوقت قد حان لتحسين العمليات أو التسعير.
+                        يُقارن هذا الرسم البياني العمودي الإيرادات من خدمات الغسيل مع المصروفات ذات الصلة.
+                        إذا كانت المصروفات تتجاوز الإيرادات باستمرار، فقد يكون الوقت قد حان لتحسين العمليات أو التسعير.
                         """)
                 else:
                     st.write("No laundry data available under the current filters.")
@@ -457,9 +501,9 @@ else:
                         any issues guests may be facing and take corrective action.
                         """)
                         st.markdown("""
-يُظهر هذا الرسم البياني الخطي مدى رضا الضيوف بمرور الوقت.
-يمكن أن تساعدك تحديد الانخفاضات في تقييم الضيوف في التحقيق
-في أي مشكلات قد يواجهها الضيوف واتخاذ إجراءات تصحيحية.
+                        يُظهر هذا الرسم البياني الخطي مدى رضا الضيوف بمرور الوقت.
+                        يمكن أن تساعدك تحديد الانخفاضات في تقييم الضيوف في التحقيق
+                        في أي مشكلات قد يواجهها الضيوف واتخاذ إجراءات تصحيحية.
                         """)
                 else:
                     st.write("No feedback data available under the current filters.")
@@ -493,8 +537,8 @@ else:
                     It’s useful for seeing which areas bring in the most revenue.
                     """)
                     st.markdown("""
-يُظهر هذا الرسم البياني العمودي مقدار الإيرادات التي يساهم بها كل قسم ضمن النطاق المحدد.
-من المفيد رؤية المناطق التي تحقق أكبر إيرادات.
+                    يُظهر هذا الرسم البياني العمودي مقدار الإيرادات التي يساهم بها كل قسم ضمن النطاق المحدد.
+                    من المفيد رؤية المناطق التي تحقق أكبر إيرادات.
                     """)
 
         # ------------------------------- KPIs ----------------------------------
@@ -791,7 +835,7 @@ else:
             else:
                 st.write("No 'MaintenanceTickets' column found to analyze service requests.")
 
-        # ----------------- ROOM TYPE PROFITABILITY ANALYSIS -------------------
+        # ----------------- ROOM Type Profitability Analysis -------------------
         elif choice == "Room Type Profitability Analysis":
             st.header("Room Type Profitability Analysis")
             st.write("""
@@ -906,8 +950,542 @@ else:
             else:
                 st.write("No dedicated upsell/cross-sell columns found (e.g., F&B Revenue, Spa Revenue, etc.).")
 
-        # ------------------------ SIDEBAR FOOTER -------------------------------
-        st.sidebar.write("For inquiries, contact us at htssociete@hotmail.com.")
+        # ------------------------ ROOM COST ANALYSIS ---------------------------
+        elif choice == "Room Cost Analysis":
+            st.header("Room Cost Analysis")
+            st.write("""
+            Analyze the cost of rooms, compare it with revenue and profit, and identify the most profitable rooms.
+            """)
 
-    else:
-        st.write("Please upload a valid file to get started.")
+            # Monthly Cost vs Revenue vs Profit Chart
+            st.subheader("Monthly Cost vs Revenue vs Profit")
+            if "Date" in filtered_data.columns and "TotalRevenue" in filtered_data.columns and "Profit" in filtered_data.columns:
+                monthly_data = (
+                    filtered_data
+                    .groupby(filtered_data["Date"].dt.to_period("M").astype(str))
+                    .agg({
+                        "TotalRevenue": "sum",
+                        "Profit": "sum",
+                        "RoomCost": "sum"
+                    })
+                    .reset_index()
+                )
+                monthly_data.rename(columns={"Date": "Month"}, inplace=True)
+
+                fig_monthly = px.line(
+                    monthly_data,
+                    x="Month",
+                    y=["TotalRevenue", "Profit", "RoomCost"],
+                    title="Monthly Revenue, Profit, and Room Cost",
+                    markers=True
+                )
+                st.plotly_chart(fig_monthly)
+                with st.expander("Explain Monthly Cost vs Revenue vs Profit"):
+                    st.markdown("""
+                    This chart shows how revenue, profit, and room costs change over time.
+                    - **TotalRevenue**: Total revenue generated each month.
+                    - **Profit**: Total profit after deducting all costs.
+                    - **RoomCost**: Total cost of rooms for each month.
+                    """)
+                    st.markdown("""
+                    **يُظهر هذا الرسم البياني كيفية تغير الإيرادات والأرباح وتكاليف الغرف بمرور الوقت.**
+                    - **إجمالي الإيرادات**: إجمالي الإيرادات التي تم تحقيقها كل شهر.
+                    - **الربح**: إجمالي الربح بعد خصم جميع التكاليف.
+                    - **تكلفة الغرف**: إجمالي تكلفة الغرف لكل شهر.
+                    """)
+            else:
+                st.write("Required columns for monthly cost vs revenue vs profit analysis are missing.")
+
+            # Top 10 Profitable Rooms Chart
+            st.subheader("Top 10 Profitable Rooms")
+            if "RoomType" in filtered_data.columns and "Profit" in filtered_data.columns:
+                room_profit = (
+                    filtered_data
+                    .groupby("RoomType")["Profit"]
+                    .sum()
+                    .reset_index()
+                    .sort_values("Profit", ascending=False)
+                    .head(10)
+                )
+                fig_top_rooms = px.bar(
+                    room_profit,
+                    x="RoomType",
+                    y="Profit",
+                    title="Top 10 Profitable Rooms",
+                    labels={"Profit": "Total Profit", "RoomType": "Room Type"}
+                )
+                st.plotly_chart(fig_top_rooms)
+                with st.expander("Explain Top 10 Profitable Rooms"):
+                    st.markdown("""
+                    This chart shows the top 10 most profitable room types based on total profit.
+                    Use this to identify which room types are generating the most profit.
+                    """)
+                    st.markdown("""
+                    **يُظهر هذا الرسم البياني أفضل 10 أنواع غرف من حيث الربح الإجمالي.**
+                    **استخدم هذا لتحديد أنواع الغرف التي تحقق أكبر ربح.**
+                    """)
+            else:
+                st.write("Need Adjusting strategy.")
+
+        # ------------------------ DYNAMIC PRICING SUGGESTIONS ------------------
+        elif choice == "Dynamic Pricing Suggestions":
+            st.header("Dynamic Pricing Suggestions")
+            st.write("""
+            Optimize room pricing strategies based on historical data, demand, and competition.
+            The suggested pricing is calculated using regression analysis on historical data.
+            """)
+
+            if "Date" in filtered_data.columns and "ADR" in filtered_data.columns:
+                # Prepare the data for regression analysis
+                pricing_data = filtered_data[["Date", "ADR", "OccupiedRooms"]].dropna()
+                pricing_data["DayOfWeek"] = pricing_data["Date"].dt.dayofweek  # Add day of the week as a feature
+
+                # Train a regression model
+                from sklearn.model_selection import train_test_split
+                from sklearn.linear_model import LinearRegression
+
+                X = pricing_data[["DayOfWeek", "OccupiedRooms"]]
+                y = pricing_data["ADR"]
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                model = LinearRegression()
+                model.fit(X_train, y_train)
+
+                # Predict optimal pricing for the next 7 days
+                next_week = pd.date_range(start=filtered_data["Date"].max() + timedelta(days=1), periods=7)
+                next_week_data = pd.DataFrame({
+                    "DayOfWeek": next_week.dayofweek,
+                    "OccupiedRooms": [filtered_data["OccupiedRooms"].mean()] * 7
+                })
+                predictions = model.predict(next_week_data)
+
+                # Display predictions
+                st.subheader("Recommended Pricing for the Next 7 Days")
+                prediction_df = pd.DataFrame({"Date": next_week, "Recommended ADR": predictions})
+                st.table(prediction_df)
+
+        # ------------------------ GUEST PREFERENCES ----------------------------
+        elif choice == "Guest Preferences":
+            st.header("Guest Preferences Recommendations")
+            st.write("""
+            Provide personalized recommendations to guests based on their preferences and booking history.
+            """)
+
+            if "GuestID" in filtered_data.columns and "LoyaltyTier" in filtered_data.columns:
+                # Example: Recommend room upgrades for Platinum loyalty members
+                platinum_guests = filtered_data[filtered_data["LoyaltyTier"] == "Platinum"]
+
+                st.subheader("Upgrade Recommendations for Platinum Guests")
+                if not platinum_guests.empty:
+                    platinum_guests["UpgradeRecommendation"] = "Royal Room"
+                    st.write(platinum_guests[["GuestID", "LoyaltyTier", "UpgradeRecommendation"]].head(10))
+                else:
+                    st.write("No Platinum members in the filtered data.")
+
+        # ------------------------ SCENARIO PLANNING ----------------------------
+        elif choice == "Scenario Planning":
+            st.header("Scenario Planning")
+            st.write("""
+            Simulate the impact of different scenarios (e.g., price changes, marketing spend) on revenue and occupancy.
+            """)
+
+            # Example: Simulate impact of increasing ADR by 10%
+            st.subheader("Simulate Impact of Price Changes")
+            price_change = st.slider("Select Price Change (%)", min_value=-50, max_value=50, value=10)
+            new_adr = filtered_data["ADR"] * (1 + price_change / 100)
+
+            # Calculate new revenue
+            new_revenue = new_adr * filtered_data["OccupiedRooms"]
+
+            # Display results
+            st.write(f"With a {price_change}% change in ADR:")
+            st.write(f"Estimated Total Revenue: ${new_revenue.sum():,.2f}")
+
+        elif choice == "Story Telling":
+            st.header("Detailed Data Story & Insights")
+
+            # Here you can create a narrative summary using key metrics
+            # Adjust the text as you like. The code checks for columns before using them.
+
+            # 1) Basic Date Range
+            if "Date" in filtered_data.columns and filtered_data["Date"].notna().any():
+                min_date = filtered_data["Date"].min().date()
+                max_date = filtered_data["Date"].max().date()
+                st.markdown(f"- **Data Range:** {min_date} to {max_date}")
+            else:
+                st.markdown("- **Data Range:** Not available (missing or invalid Date column).")
+
+            # 2) Basic Row Count
+            total_rows = len(filtered_data)
+            st.markdown(f"- **Number of Records (after filters):** {total_rows}")
+
+            # 3) Overall Revenue & Profit
+            if "TotalRevenue" in filtered_data.columns:
+                total_revenue = filtered_data["TotalRevenue"].sum()
+                st.markdown(f"- **Total Revenue (Filtered):** ${total_revenue:,.2f}")
+            else:
+                st.markdown("- **Total Revenue:** Not available in dataset.")
+
+            if "Profit" in filtered_data.columns:
+                total_profit = filtered_data["Profit"].sum()
+                st.markdown(f"- **Total Profit (Filtered):** ${total_profit:,.2f}")
+            else:
+                st.markdown("- **Total Profit:** Not available in dataset.")
+
+            # 4) Occupancy & ADR
+            occupancy_rate = None
+            if all(col in filtered_data.columns for col in ["OccupiedRooms", "AvailableRooms"]):
+                if filtered_data["AvailableRooms"].sum() > 0:
+                    occupancy_rate = (
+                        filtered_data["OccupiedRooms"].sum()
+                        / filtered_data["AvailableRooms"].sum()
+                        * 100
+                    )
+                    st.markdown(f"- **Overall Occupancy Rate:** {occupancy_rate:.2f}%")
+                else:
+                    st.markdown("- **Occupancy Rate:** AvailableRooms sum is zero, cannot compute.")
+            else:
+                st.markdown("- **Occupancy Rate:** Missing OccupiedRooms/AvailableRooms columns.")
+
+            if "ADR" in filtered_data.columns:
+                avg_adr = filtered_data["ADR"].mean()
+                st.markdown(f"- **Average ADR:** ${avg_adr:,.2f}")
+            else:
+                st.markdown("- **Average ADR:** Missing ADR column.")
+
+            # 5) Identify Potential Weak Points or Observations
+            st.subheader("Potential Weak Points & Observations")
+            # Example checks:
+            # a) If Occupancy is low
+            if occupancy_rate is not None and occupancy_rate < 40:
+                st.markdown("- **Low Occupancy:** Occupancy is below 40%. Consider targeted marketing or promotions.")
+            # b) If Profit is negative
+            if "Profit" in filtered_data.columns and total_profit < 0:
+                st.markdown("- **Negative Profit:** Overall profit is negative. Review costs or increase revenue strategies.")
+            # c) If feedback is present but below a threshold
+            if "GuestFeedbackScore" in filtered_data.columns:
+                avg_feedback = filtered_data["GuestFeedbackScore"].mean()
+                if avg_feedback < 6:
+                    st.markdown("- **Low Guest Satisfaction:** Average feedback score is below 6/10. Investigate common complaints.")
+            
+            # d) If marketing ROI is suspiciously low
+            if all(col in filtered_data.columns for col in ["MarketingSpend", "TotalRevenue"]):
+                total_marketing_spend = filtered_data["MarketingSpend"].sum()
+                if total_marketing_spend > 0:
+                    marketing_roi = total_revenue / total_marketing_spend
+                    if marketing_roi < 1:
+                        st.markdown("- **Low Marketing ROI:** Revenue < MarketingSpend. Refine campaigns or reduce spend.")
+            
+            # 6) Simple Narrative Explanation
+            st.write("----")
+            st.markdown("## Narrative Summary")
+            st.write(
+                """
+                Based on the filtered dataset:
+                - We analyzed the time period to understand how revenue, occupancy, and satisfaction scores evolve.
+                - The data indicates certain areas (like low occupancy or negative profit) that require attention.
+                - **Recommendations** might include adjusting room rates (if ADR is too low or too high), 
+                  refining marketing strategies to improve ROI, or focusing on guest experience for better feedback scores.
+
+                Overall, these insights guide you to **focus on improving weak spots** such as 
+                guest satisfaction, marketing optimization, or cost reduction in housekeeping and maintenance. 
+                """
+            )
+            
+            # You can also add expansions in other languages (e.g. Arabic).
+            # Example short Arabic summary:
+            st.markdown("### ملخص باللغة العربية")
+            st.write(
+                """
+                من خلال تحليل البيانات الحالية:
+                - قمنا بدراسة الفترة الزمنية من حيث الإيرادات، الإشغال، وتقييمات الضيوف.
+                - تشير النتائج إلى بعض النقاط الضعيفة مثل انخفاض معدل الإشغال أو الربح السلبي.
+                - التوصيات قد تتضمن تعديل أسعار الغرف أو تحسين استراتيجية التسويق وتحسين تجربة الضيوف.
+
+                بشكل عام، يمكن استخدام هذه النتائج لتوجيه الجهود نحو تحسين المجالات الأضعف مثل
+                رضا الضيوف وتحسين فعالية الإنفاق التسويقي أو تقليل التكاليف الزائدة.
+                """
+            )
+
+        # ------------------------ DIG DEEPER -----------------------------------
+        elif choice == "Dig Deeper":
+            st.header("Dig Deeper Analysis")
+            st.write("""
+            Compare exactly two columns and analyze their relationship with multiple chart options.
+            """)
+
+            # Get all columns
+            all_columns = filtered_data.columns.tolist()
+            
+            # Force user to select exactly 2 columns
+            selected_columns = st.multiselect(
+                "Select exactly two columns to compare", 
+                options=all_columns, 
+                default=all_columns[:2]
+            )
+
+            # Check the number of selected columns
+            if len(selected_columns) < 2:
+                st.warning("Please select 2 columns to proceed.")
+            elif len(selected_columns) > 2:
+                st.warning("Please select only 2 columns to proceed.")
+            else:
+                # Extract the two columns
+                col1, col2 = selected_columns
+                st.subheader(f"Comparison: **{col1}** vs **{col2}**")
+
+                # Determine if columns are numeric or categorical
+                col1_is_numeric = pd.api.types.is_numeric_dtype(filtered_data[col1])
+                col2_is_numeric = pd.api.types.is_numeric_dtype(filtered_data[col2])
+
+                # ---------------------------------------------------------
+                # CASE 1: Both columns are numeric
+                # ---------------------------------------------------------
+                if col1_is_numeric and col2_is_numeric:
+                    st.markdown("**Both variables are numeric.** Below are the best ways to visualize their relationship:")
+
+                    # Scatter Plot
+                    scatter_fig = px.scatter(
+                        filtered_data,
+                        x=col1,
+                        y=col2,
+                        title=f"Scatter Plot: {col1} vs {col2}"
+                    )
+                    st.plotly_chart(scatter_fig)
+
+                    # Line Chart
+                    line_fig = px.line(
+                        filtered_data,
+                        x=col1,
+                        y=col2,
+                        title=f"Line Chart: {col1} vs {col2}"
+                    )
+                    st.plotly_chart(line_fig)
+
+                    # Correlation Heatmap
+                    corr = filtered_data[[col1, col2]].corr().iloc[0, 1]
+                    heatmap_fig = px.imshow(
+                        filtered_data[[col1, col2]].corr(),
+                        text_auto=True,
+                        color_continuous_scale='RdBu_r',
+                        title=f"Correlation Heatmap: {col1} vs {col2}"
+                    )
+                    st.plotly_chart(heatmap_fig)
+
+                    # Explanation
+                    with st.expander("View Explanation"):
+                        st.write(f"**Correlation between {col1} and {col2}:** {corr:.2f}")
+                        if corr > 0.7:
+                            st.write("There is a **strong positive correlation** between the two variables. As one increases, the other tends to increase as well.")
+                        elif corr < -0.7:
+                            st.write("There is a **strong negative correlation** between the two variables. As one increases, the other tends to decrease.")
+                        else:
+                            st.write("The correlation is **weak or moderate**. There is no strong linear relationship between the two variables.")
+
+                # ---------------------------------------------------------
+                # CASE 2: One numeric, one categorical
+                # ---------------------------------------------------------
+                elif (col1_is_numeric and not col2_is_numeric) or (not col1_is_numeric and col2_is_numeric):
+                    st.markdown("**One variable is numeric and the other is categorical.** Below are the best ways to visualize their relationship:")
+
+                    # Identify which is categorical and which is numeric
+                    if col1_is_numeric:
+                        numeric_col = col1
+                        cat_col = col2
+                    else:
+                        numeric_col = col2
+                        cat_col = col1
+
+                    # Bar Chart
+                    cat_bar_fig = px.bar(
+                        filtered_data,
+                        x=cat_col,
+                        y=numeric_col,
+                        title=f"Bar Chart: {cat_col} vs {numeric_col}"
+                    )
+                    st.plotly_chart(cat_bar_fig)
+
+                    # Box Plot
+                    box_fig = px.box(
+                        filtered_data,
+                        x=cat_col,
+                        y=numeric_col,
+                        title=f"Box Plot: {cat_col} vs {numeric_col}"
+                    )
+                    st.plotly_chart(box_fig)
+
+                    # Violin Plot
+                    violin_fig = px.violin(
+                        filtered_data,
+                        x=cat_col,
+                        y=numeric_col,
+                        box=True,
+                        points="all",
+                        title=f"Violin Plot: {cat_col} vs {numeric_col}"
+                    )
+                    st.plotly_chart(violin_fig)
+
+                    # Explanation
+                    with st.expander("View Explanation"):
+                        mean_by_cat = filtered_data.groupby(cat_col)[numeric_col].mean().reset_index(name="mean_value")
+                        highest_cat = mean_by_cat.loc[mean_by_cat["mean_value"].idxmax(), cat_col]
+                        highest_mean = mean_by_cat["mean_value"].max()
+
+                        st.write(f"The category **{highest_cat}** has the highest average value of **{numeric_col}** ({highest_mean:.2f}).")
+                        st.write("The **Box Plot** and **Violin Plot** show the distribution of the numeric variable across categories, including potential outliers.")
+
+                # ---------------------------------------------------------
+                # CASE 3: Both columns are categorical
+                # ---------------------------------------------------------
+                else:
+                    st.markdown("**Both variables are categorical.** Below are the best ways to visualize their relationship:")
+
+                    # Grouped Bar Chart
+                    grouped_data = filtered_data.groupby([col1, col2]).size().reset_index(name='count')
+                    grouped_bar_fig = px.bar(
+                        grouped_data,
+                        x=col1,
+                        y='count',
+                        color=col2,
+                        barmode='group',
+                        title=f"Grouped Bar Chart: {col1} vs {col2}"
+                    )
+                    st.plotly_chart(grouped_bar_fig)
+
+                    # Sunburst Chart
+                    sunburst_fig = px.sunburst(
+                        grouped_data,
+                        path=[col1, col2],
+                        values='count',
+                        title=f"Sunburst Chart: {col1} vs {col2}"
+                    )
+                    st.plotly_chart(sunburst_fig)
+
+                    # Heatmap
+                    heatmap_fig = px.density_heatmap(
+                        filtered_data,
+                        x=col1,
+                        y=col2,
+                        title=f"Heatmap: {col1} vs {col2}"
+                    )
+                    st.plotly_chart(heatmap_fig)
+
+                    # Explanation
+                    with st.expander("View Explanation"):
+                        max_count = grouped_data['count'].max()
+                        most_frequent = grouped_data[grouped_data['count'] == max_count]
+
+                        if len(most_frequent) == 1:
+                            top_c1 = most_frequent[col1].values[0]
+                            top_c2 = most_frequent[col2].values[0]
+                            st.write(f"The most frequent combination is: **{col1} = {top_c1}** and **{col2} = {top_c2}**, with a count of **{max_count}**.")
+                        else:
+                            st.write(f"There are multiple combinations with the highest frequency, each having a count of **{max_count}**.")
+      # ─────────────────────────────────────────────────────────────────────────
+
+        # (NEW) COMPANY'S ANALYSIS
+        # ─────────────────────────────────────────────────────────────────────────
+        elif choice == "Company's":
+            st.header("Company Analysis")
+
+            # Ensure the necessary columns exist
+            if "Company" not in filtered_data.columns or "CompanyDiscount" not in filtered_data.columns:
+                st.warning("Company' and 'CompanyDiscount'")
+            else:
+                # 1) YEAR & QUARTER CALCULATION
+                # If not already created above:
+                if "Quarter" not in filtered_data.columns:
+                    if "Date" in filtered_data.columns and filtered_data["Date"].notna().any():
+                        filtered_data["Quarter"] = filtered_data["Date"].dt.quarter
+                    else:
+                        filtered_data["Quarter"] = 0  # fallback if date is missing or invalid
+
+                # 2) TOTAL REVENUE FROM EACH COMPANY BY YEAR & QUARTER
+                st.subheader("Total Revenue by Company, Year, and Quarter")
+                if "TotalRevenue" in filtered_data.columns:
+                    revenue_by_company = (
+                        filtered_data.groupby(["Company", "Year", "Quarter"])["TotalRevenue"]
+                        .sum()
+                        .reset_index()
+                    )
+
+                    if not revenue_by_company.empty:
+                        fig_revenue_company = px.bar(
+                            revenue_by_company,
+                            x="Year",
+                            y="TotalRevenue",
+                            color="Quarter",
+                            facet_col="Company",
+                            facet_col_wrap=3,  # one chart per Company
+                            title="Company Revenue by Year & Quarter (Filtered)",
+                            barmode="group"
+                        )
+                        fig_revenue_company.for_each_annotation(
+    lambda a: a.update(text=a.text.split("=")[-1])
+)
+
+                        st.plotly_chart(fig_revenue_company)
+
+                        with st.expander("Explanation (English & Arabic)"):
+                            st.markdown("### English Explanation")
+                            st.write("""
+                            - **Chart**: Each Company's revenue is broken down by Year on the X-axis and colored by Quarter.
+                            - **Interpretation**: You can see how each Company’s revenue changes across different years and quarters. 
+                              Look for quarters with higher bars to identify peak periods of spending or partnership performance.
+                            """)
+                           
+                    else:
+                        st.write("No revenue data (TotalRevenue) available under current filters.")
+                else:
+                    st.write("No 'TotalRevenue' column found. Cannot analyze company revenue.")
+
+                # 3) COMPANY DISCOUNT USAGE (FREQUENCY & AMOUNT) BY YEAR
+                st.subheader("Company Discount Usage by Year")
+                # We assume CompanyDiscount is numeric (e.g., discount amount).
+                # If it's a boolean or code, adjust accordingly.
+                discount_usage = (
+                    filtered_data.groupby(["Company", "Year"])["CompanyDiscount"]
+                    .agg(["count", "sum"])
+                    .reset_index()
+                )
+                discount_usage.rename(columns={"count": "UsageCount", "sum": "DiscountSum"}, inplace=True)
+
+                if not discount_usage.empty:
+                    # A bar chart for usage count
+                    fig_discount_count = px.bar(
+                        discount_usage,
+                        x="Year",
+                        y="UsageCount",
+                        color="Company",
+                        barmode="group",
+                        title="Company Discount - Frequency of Usage by Year"
+                    )
+                    st.plotly_chart(fig_discount_count)
+
+                    # Another bar chart for total discount sum
+                    fig_discount_sum = px.bar(
+                        discount_usage,
+                        x="Year",
+                        y="DiscountSum",
+                        color="Company",
+                        barmode="group",
+                        title="Company Discount - Total Discount Amount by Year"
+                    )
+                    st.plotly_chart(fig_discount_sum)
+
+                    with st.expander("Explanation (English & Arabic)"):
+                        st.markdown("### English Explanation")
+                        st.write("""
+                        - **Frequency of Usage**: Shows how many times the discount was applied (UsageCount).
+                        - **Total Discount Amount**: Shows the sum of all discount values used in each year (DiscountSum).
+                        - High usage may indicate a popular or beneficial discount for that company, 
+                          while a high total sum shows the overall monetary impact.
+                        """)
+                        st.markdown("---")
+                       
+                else:
+                    st.write("No discount usage data found under the current filters.")
+
+        # (Keep the rest of your code sections unchanged below ...)
+        
+        # ------------------------ SIDEBAR FOOTER -------------------------------
+    
