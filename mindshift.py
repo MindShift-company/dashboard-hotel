@@ -1,7 +1,11 @@
 # mindshift.py
 
 import streamlit as st
-import scr  # We import our separate scr.py module
+import scr
+import pandas as pd 
+import plotly.express as px
+ # Add this line at the top of the file
+
 
 # Ensure session state for login
 if "logged_in" not in st.session_state:
@@ -24,10 +28,10 @@ else:
     if uploaded_file:
         # Load data based on file type
         if uploaded_file.name.endswith(".csv") or uploaded_file.name.endswith(".txt"):
+            
             data = pd.read_csv(uploaded_file)
         else:
             data = pd.read_excel(uploaded_file)
-
         # Convert Date columns to datetime
         data["Date"] = pd.to_datetime(data["Date"], errors='coerce')
         data["CheckInDate"] = pd.to_datetime(data["CheckInDate"], errors='coerce')
@@ -1488,4 +1492,4 @@ else:
         # (Keep the rest of your code sections unchanged below ...)
         
         # ------------------------ SIDEBAR FOOTER -------------------------------
-    
+scr.add_contact_message()

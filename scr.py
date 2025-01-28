@@ -1,4 +1,3 @@
-# scr.py
 
 # All library imports
 import streamlit as st
@@ -10,12 +9,14 @@ import numpy as np
 from datetime import timedelta
 import os
 
+
 def run_streamlit_main():
     """
     If you want to auto-run Streamlit from this file, you can call this function.
-    It uses 'os.system' to run 'main.py' (or mindshift.py). Adjust as needed.
+    It uses 'os.system' to run 'mindshift.py'. Adjust as needed.
     """
     os.system("streamlit run mindshift.py --server.address localhost")
+
 
 def login():
     """Simple Streamlit login form."""
@@ -28,6 +29,7 @@ def login():
             st.session_state["logged_in"] = True
         else:
             st.sidebar.error("Invalid username or password")
+
 
 def add_contact_message():
     """Displays your contact message in the sidebar."""
