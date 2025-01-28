@@ -34,3 +34,23 @@ def login():
 def add_contact_message():
     """Displays your contact message in the sidebar."""
     st.sidebar.write("For inquiries, contact us at htssociete@hotmail.com.")
+
+    
+def display_dashboard_analytics():
+    st.title("Intelligent Dashboard Analytics")
+    st.sidebar.title("MindShift")
+    st.sidebar.write("Explore different analyses")
+    st.image("mindshift.jpg", width=200)
+
+    # File Upload
+    uploaded_file = st.file_uploader("Upload your file (csv, txt, xlsx, xls)", type=["csv", "txt", "xlsx", "xls"])
+    if uploaded_file:
+        # Load data based on file type
+        if uploaded_file.name.endswith(".csv") or uploaded_file.name.endswith(".txt"):
+            data = pd.read_csv(uploaded_file)
+        else:
+            data = pd.read_excel(uploaded_file)
+        return data
+    else:
+        st.warning("Please upload a file to proceed.")
+        return None
