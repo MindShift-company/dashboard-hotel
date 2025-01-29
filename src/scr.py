@@ -40,15 +40,7 @@ def display_dashboard_analytics():
     st.sidebar.title("MindShift")
     st.sidebar.write("Explore different analysis")
 
-    # Corrected image path
-    image_path = "/Applications/XAMPP/xamppfiles/htdocs/mywebsite/project/hotels/dashboard-hotel/src/mindshift.jpg"
-
-    # Check if the image file exists before displaying it
-    if os.path.exists(image_path):
-        st.image(image_path, width=200)
-    else:
-        st.error(f"Error: Image file '{image_path}' not found. Please check the file path.")
-
+    
     # File Upload
     uploaded_file = st.file_uploader("Upload your file (csv, txt, xlsx, xls)", type=["csv", "txt", "xlsx", "xls"])
     
