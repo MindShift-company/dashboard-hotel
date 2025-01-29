@@ -39,7 +39,7 @@ def add_contact_message():
 def display_dashboard_analytics():
     st.title("Intelligent Dashboard Analytics")
     st.sidebar.title("MindShift")
-    st.sidebar.write("Explore different analyses")
+    st.sidebar.write("Explore different analysis")
     st.image("mindshift.jpg", width=200)
 
     # File Upload
