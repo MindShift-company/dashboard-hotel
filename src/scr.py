@@ -1,4 +1,3 @@
-
 # All library imports
 import streamlit as st
 import pandas as pd
@@ -35,22 +34,32 @@ def add_contact_message():
     """Displays your contact message in the sidebar."""
     st.sidebar.write("For inquiries, contact us at htssociete@hotmail.com.")
 
-    
+
 def display_dashboard_analytics():
     st.title("Intelligent Dashboard Analytics")
     st.sidebar.title("MindShift")
     st.sidebar.write("Explore different analysis")
-    st.image("mindshift.jpg", width=200)
+
+    # Corrected image path
+    image_path = "/Applications/XAMPP/xamppfiles/htdocs/mywebsite/project/hotels/dashboard-hotel/src/mindshift.jpg"
+
+    # Check if the image file exists before displaying it
+    if os.path.exists(image_path):
+        st.image(image_path, width=200)
+    else:
+        st.error(f"Error: Image file '{image_path}' not found. Please check the file path.")
 
     # File Upload
     uploaded_file = st.file_uploader("Upload your file (csv, txt, xlsx, xls)", type=["csv", "txt", "xlsx", "xls"])
+    
     if uploaded_file:
         # Load data based on file type
         if uploaded_file.name.endswith(".csv") or uploaded_file.name.endswith(".txt"):
             data = pd.read_csv(uploaded_file)
         else:
             data = pd.read_excel(uploaded_file)
-        return data
+        
+        return data  # Corrected indentation issue
     else:
         st.warning("Please upload a file to proceed.")
         return None
