@@ -1,7 +1,7 @@
 # mindshift.py
 
 import streamlit as st
-import scr
+import src.scr as scr
 import pandas as pd 
 import plotly.express as px
 from datetime import timedelta
